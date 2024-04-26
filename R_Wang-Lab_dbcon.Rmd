@@ -1,0 +1,95 @@
+---
+title: "Querying the Wang Lab Database"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#Check if the package is installed, if not, install it
+if (!requireNamespace("RPostgres", quietly = TRUE)) {
+  install.packages("RPostgres")
+}
+# Check if the package is installed, if not, install it
+if (!requireNamespace("DBI", quietly = TRUE)) {
+  install.packages("DBI")
+}
+# Load required packages
+library("RPostgres")
+library(DBI)
+```
+
+
+### Establishing Connection to the Wang Lab Database
+Establishes a connection to the PostgreSQL database using the provided credentials including the database name, host, user, port, and password.
+
+```{r connection, echo=TRUE}
+# Enter the parameters from your database
+# Do not expose the database credentials
+
+host <- 'host'
+dbname <- 'database_name'
+user <- 'user'
+port <- 'port_number'
+
+# Connect to postgres database
+con <- DBI::dbConnect(RPostgres::Postgres(), dbname = dbname, host = host, port = port, user = user, password = rstudioapi::askForSecret("password"))
+```
+
+
+### Listing Tables in the Database
+Lists all the tables available in the connected database using the dbListTables() function.
+
+```{r}
+dbListTables(con)
+```
+
+
+### Querying Data from Database
+Defines a SQL query string to select all columns and rows from a table named main_table. The query is then sent to the database using dbSendQuery(), and the fetched data is stored in a data frame using dbFetch(). Clears the result set using dbClearResult() and disconnects from the database using dbDisconnect() to free up resources. The `data_frame` object remains in memory for analysis even after disconnecting from database.
+
+NOTE: Before executing a new query, RUN the dbClearResult(query) instruction to clean memory from the previous query. Additionally, you should run the dbClearResult(query) before closing the database connection. 
+
+For complex queries, we suggest downloading a subset of data to filter and manipulate the data frame obtained using the functions of R. 
+```{r}
+# Define the SQL query
+
+# Example query 1: this query returns all records from the table main_table
+query_string <- "SELECT * FROM main_table"
+
+# Example query 2: this query returns all records where crop is Wheat
+# query_string <- "SELECT * FROM main_table WHERE crop = 'Wheat'"
+
+# Example query 3: this query returns all records where crop is Wheat and measurement_method is Remote sensing
+# query_string <- "SELECT * FROM main_table WHERE crop = 'Wheat' AND measurement_method = 'Remote sensing'"
+
+
+# Example query 4: this query returns all records where crop is Wheat and measurement_method is Direct measurement or Proximal sensing
+# query_string <- "SELECT * FROM main_table WHERE crop = 'Wheat' 
+#                         AND measurement_method = 'Direct measurement' 
+#                         OR measurement_method = 'Proximal sensing'"
+
+# Example query 5: this query returns records from columns variable_value and variable_units where crop is Wheat, treatment is Drought and season is Winter 2021-2022
+# query_string <- "SELECT variable_value, variable_units FROM main_table WHERE variable_name = 'Leaf SPAD-502 readings' 
+#                         AND treatment =  'Drought'
+#                         AND season = 'Winter 2021-2022'"
+
+# Send query to the database
+query <- dbSendQuery(con, query_string)
+
+# Fetch the data into a data frame
+data_frame <- dbFetch(query)
+
+# Clear previous query
+dbClearResult(query)
+
+# Disconnect from the database to release resources.
+dbDisconnect(con)
+```
+
+
+### Displaying dataframe
+Displays the fetched data stored in the `data_frame` object. Data are ready for visualization and analysis!
+
+```{r}
+# The results are stored in the data_frame object
+head(data_frame)
+```
