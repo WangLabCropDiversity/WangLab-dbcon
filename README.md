@@ -22,7 +22,7 @@ This repository offers two options for connecting to the Wang Lab Database: usin
 
 ## Option 2: Connecting with Python
 
-### Using R_Wang-Lab_dbcon.ipynb
+### Using Python_Wang-Lab_dbcon.ipynb
 
 1. Make sure you have Jupyter Notebook installed.
 2. Open the `R_Wang-Lab_dbcon.ipynb` notebook in Jupyter Notebook.
